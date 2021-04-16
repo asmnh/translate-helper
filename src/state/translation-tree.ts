@@ -85,11 +85,14 @@ export default class TranslationTree {
   async download(uri: string): Promise<TranslationTree> {
     try {
       this.isDownloading.value = true;
-      const data = (await axios.get(uri)).data as TranslationNode;
-      this.tree = data;
+      const data = (await axios.get(uri)).data;
+      if (typeof data === "string") {
+        throw new Error("Unable to parse translations as string");
+      }
+      this.tree = data as TranslationNode;
       this.hasDownloadedData.value = true;
       this.isDownloading.value = false;
-      this.downloadCallbacks.forEach((cb) => cb(data));
+      this.downloadCallbacks.forEach((cb) => cb(this.tree));
     } catch (err) {
       this.hasDownloadedData.value = false;
       this.isDownloading.value = false;
