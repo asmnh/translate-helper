@@ -1,5 +1,7 @@
 import { expect } from "chai";
 import TranslationTree from "@/state/translation-tree";
+import axios from "axios";
+import MockAdapter from "axios-mock-adapter";
 
 describe("state/translation-tree.ts", () => {
   const testData = {
@@ -58,5 +60,26 @@ describe("state/translation-tree.ts", () => {
     expect(subject.allowsKey("secondflat")).to.be.true;
     expect(subject.allowsKey("element.inner.path.to.very.deep.value")).to.be
       .true;
+  });
+
+  it("loads translations from url", async () => {
+    const translationUri = "https://some.uri/translations";
+    const mock = new MockAdapter(axios);
+    mock.onGet(translationUri).reply(200, testData);
+
+    const subject = new TranslationTree({});
+    await subject.download(translationUri);
+
+    const expected = [
+      "element.value1",
+      "element.value2",
+      "element.value3",
+      "element.inner.element",
+      "other.value",
+      "flat",
+    ];
+
+    expect(subject.keys).to.include.members(expected);
+    expect(subject.keys.length).to.be.eq(expected.length);
   });
 });

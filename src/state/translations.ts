@@ -32,6 +32,13 @@ export default class Translations {
       storage.getItem(EXISTING_TRANSLATIONS_BUFFER) || "{}"
     ) as TranslationNode;
     this._existing = new TranslationTree(translations);
+    this._existing.onDownload(function (tree: TranslationNode) {
+      storage.setItem(EXISTING_TRANSLATIONS_BUFFER, JSON.stringify(tree));
+    });
+  }
+
+  get existing(): TranslationTree {
+    return this._existing;
   }
 
   get values(): TT[] {

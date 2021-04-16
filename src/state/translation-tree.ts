@@ -1,12 +1,21 @@
+import axios from "axios";
+import { Ref, ref } from "vue";
+
 export interface TranslationNode {
   [key: string]: TranslationNode | string | null;
 }
 
 export default class TranslationTree {
   private tree: TranslationNode;
+  private hasDownloadedData: Ref<boolean>;
+  private isDownloading: Ref<boolean>;
+  private downloadCallbacks: ((tree: TranslationNode) => void)[];
 
   constructor(tree: TranslationNode) {
     this.tree = tree;
+    this.hasDownloadedData = ref(false);
+    this.isDownloading = ref(false);
+    this.downloadCallbacks = [];
   }
 
   get keys(): string[] {
@@ -31,6 +40,10 @@ export default class TranslationTree {
     return this.tree;
   }
 
+  onDownload(callback: (tree: TranslationNode) => void): void {
+    this.downloadCallbacks.push(callback);
+  }
+
   // returns false when path conflicts with existing keys, otherwise true
   allowsKey(key: string): boolean {
     const parts = key.split(".");
@@ -49,5 +62,39 @@ export default class TranslationTree {
       }
     }
     return false;
+  }
+
+  get downloaded(): boolean {
+    return this.hasDownloadedData.value;
+  }
+
+  get downloading(): boolean {
+    return this.isDownloading.value;
+  }
+
+  get downloadStatus(): {
+    downloading: Ref<boolean>;
+    downloaded: Ref<boolean>;
+  } {
+    return {
+      downloading: this.isDownloading,
+      downloaded: this.hasDownloadedData,
+    };
+  }
+
+  async download(uri: string): Promise<TranslationTree> {
+    try {
+      this.isDownloading.value = true;
+      const data = (await axios.get(uri)).data as TranslationNode;
+      this.tree = data;
+      this.hasDownloadedData.value = true;
+      this.isDownloading.value = false;
+      this.downloadCallbacks.forEach((cb) => cb(data));
+    } catch (err) {
+      this.hasDownloadedData.value = false;
+      this.isDownloading.value = false;
+      throw err;
+    }
+    return this;
   }
 }
