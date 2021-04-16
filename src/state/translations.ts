@@ -1,5 +1,10 @@
 import { reactive, ref, Ref } from "vue";
-import { LocalStorageType, TRANSLATIONS_STORAGE_KEY } from "./store";
+import {
+  EXISTING_TRANSLATIONS_BUFFER,
+  LocalStorageType,
+  TRANSLATIONS_STORAGE_KEY,
+} from "./store";
+import TranslationTree, { TranslationNode } from "./translation-tree";
 
 export interface TT {
   key: string;
@@ -12,6 +17,8 @@ export default class Translations {
   private _pending: Promise<void> | null;
   private _saving: Ref<boolean>;
 
+  private _existing: TranslationTree;
+
   constructor(storage: LocalStorageType) {
     this._storage = storage;
     const data = JSON.parse(
@@ -20,6 +27,11 @@ export default class Translations {
     this._values = reactive(data);
     this._pending = null;
     this._saving = ref(false);
+
+    const translations = JSON.parse(
+      storage.getItem(EXISTING_TRANSLATIONS_BUFFER) || "{}"
+    ) as TranslationNode;
+    this._existing = new TranslationTree(translations);
   }
 
   get values(): TT[] {
