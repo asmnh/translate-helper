@@ -71,5 +71,7 @@ export default defineComponent({
 input {
   font-size: 18px;
   padding: 3px;
+  margin: 1em;
+  width: 95%;
 }
 </style>

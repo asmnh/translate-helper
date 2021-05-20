@@ -60,7 +60,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .translation-list {
-  display: block;
+  width: 100%;
   td,
   th {
     padding: 5px;

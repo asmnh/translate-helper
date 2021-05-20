@@ -156,7 +156,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .list {
-  display: flex;
   justify-content: center;
 }
 
